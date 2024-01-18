@@ -1,6 +1,7 @@
 # Keeping our local DB in place for now
 # .tmp/
 
+.github
 .cache/
 .git/
 build/
