@@ -1,0 +1,9 @@
+# Keeping our local DB in place for now
+# .tmp/
+
+.cache/
+.git/
+build/
+node_modules/
+.env
+data/
