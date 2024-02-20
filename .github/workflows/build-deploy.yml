@@ -1,32 +1,24 @@
 name: Deploy to Amazon ECS
 
 on:
-  push:
-    branches:
-      - main
-
-  workflow_dispatch:
-
-  # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-  # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
-concurrency:
-  group: "backend"
-  cancel-in-progress: false
-
-env:
-  AWS_REGION: us-east-1                           # set this to your preferred AWS region, e.g. us-west-1
-  ECR_REPOSITORY: umnum.net                       # set this to your Amazon ECR repository name
-  ECS_SERVICE: api-service                        # set this to your Amazon ECS service name
-  ECS_CLUSTER: my-api-cluster                     # set this to your Amazon ECS cluster name
-  ECS_TASK_DEFINITION: .aws/task-def.json  # set this to the path to your Amazon ECS task definition file, e.g. .aws/task-definition.json
-  CONTAINER_NAME: strapi-test                     # set this to the name of the container in the  containerDefinitions section of your task definition
-  PUBLIC_URL: https://api.umnum.net
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
 
 jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    environment: production
+    environment: ${{ inputs.environment }}
+    env:
+      AWS_REGION: us-east-1
+      ECR_REPOSITORY: ${{ vars.REPO_NAME }}
+      ECS_SERVICE: ${{ vars.SERVICE_NAME }}
+      ECS_CLUSTER: ${{ vars.CLUSTER_NAME }}
+      ECS_TASK_DEFINITION: ${{ vars.TASK_DEF_PATH }}
+      CONTAINER_NAME: ${{ vars.CONTAINER_NAME }}
 
     steps:
       - name: Checkout
@@ -53,7 +45,7 @@ jobs:
           # Build a docker container and
           # push it to ECR so that it can
           # be deployed to ECS.
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --build-arg="PUBLIC_URL=$PUBLIC_URL" .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG  --build-arg="PUBLIC_URL=$PUBLIC_URL" .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
